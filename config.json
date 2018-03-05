@@ -1,0 +1,126 @@
+{
+    "name": "Project Sequestration State",
+    "namespace": "ProjectSequestrationState\\ExternalModule",
+    "description": "Provides global admins a new project state that \"sequestrates\" access from local users - including project administrators. It is different from Archived state since project admins don't have any control over this new state. <strong><a href=\"https://github.com/ctsit/project_sequestration_state\">See full documentation here</a></strong>.",
+    "permissions": [
+        "redcap_every_page_before_render",
+        "redcap_every_page_top"
+    ],
+    "authors": [
+        {
+            "name": "Philip Chase",
+            "email": "pbc@ufl.edu",
+            "institution": "University of Florida - CTSI"
+        },
+        {
+            "name": "Taryn Stoffs",
+            "email": "tls@ufl.edu",
+            "institution": "University of Florida - CTSI"
+        },
+        {
+            "name": "Marly Cormar",
+            "email": "marlycormar@ufl.edu",
+            "institution": "University of Florida - CTSI"
+        },
+        {
+            "name": "Tiago Bember",
+            "email": "tbembersimeao@ufl.edu",
+            "institution": "University of Florida - CTSI"
+        }
+    ],
+    "system-settings": [
+        {
+            "key": "name",
+            "name": "State name",
+            "type": "text",
+            "required": "true",
+            "default": "sequestered"
+        },
+        {
+            "key": "icon",
+            "name": "State icon (see icons list <a href=\"https://getbootstrap.com/docs/3.3/components/\" target=\"_blank\"><b>here</b></a>)",
+            "required": "true",
+            "type": "text",
+            "default": "ban-circle"
+        },
+        {
+            "key": "inactive",
+            "name": "Disable project functionalities (e.g. surveys)",
+            "type": "checkbox",
+            "default": true
+        },
+        {
+            "key": "warning_message",
+            "name": "Warning message (to be shown at project pages)",
+            "type": "textarea",
+            "default": "Please note that because this project is in Sequestered status, regular activity in this project should not occur. If you wish to resurrect this project and begin using it again, then you should contact the site administrator."
+        },
+        {
+            "key": "override_user_rights",
+            "name": "Override user rights",
+            "type": "checkbox",
+            "default": true
+        }
+    ],
+    "project-settings": [
+        {
+            "key": "mode",
+            "name": "Sequestration mode",
+            "type": "radio",
+            "choices": [
+                {
+                    "name": "Simple On/Off Switch",
+                    "value": "switch"
+                },
+                {
+                    "name": "Scheduled",
+                    "value": "scheduled"
+                }
+            ]
+        },
+        {
+            "key": "sequestered",
+            "name": "Sequestered",
+            "type": "checkbox"
+        },
+        {
+            "key": "date",
+            "name": "Sequestration date",
+            "type": "text"
+        },
+        {
+            "key": "override_defaults",
+            "name": "Override default configuration",
+            "type": "checkbox"
+        },
+        {
+            "key": "override_defaults_wrapper",
+            "name": "Override defaults",
+            "type": "sub_settings",
+            "sub_settings": [
+                {
+                    "key": "inactive",
+                    "name": "Disable project functionalities (e.g. surveys)",
+                    "type": "checkbox",
+                    "default": true
+                },
+                {
+                    "key": "warning_message",
+                    "name": "Warning message (to be shown at project pages)",
+                    "type": "textarea",
+                    "default": "Please note that because this project is in Sequestered status, regular activity in this project should not occur. If you wish to resurrect this project and begin using it again, then you should contact the site administrator."
+                },
+                {
+                    "key": "override_user_rights",
+                    "name": "Override user rights",
+                    "type": "checkbox",
+                    "default": true
+                }
+            ]
+        }
+    ],
+    "enable-every-page-hooks-on-system-pages": true,
+    "compatibility": {
+        "redcap-version-min": "8.0.3"
+    }
+}
