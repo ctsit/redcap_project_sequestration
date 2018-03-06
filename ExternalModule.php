@@ -11,22 +11,19 @@ use ExternalModules\ExternalModules;
 use RCView;
 use UserRights;
 use DateTime;
-use System;
 
 // TODO: Add documentation to every function and complex structures.
-
-// TODO: Unhardcode this - create fake project and role automatically.
-define('PSS_PID', 123);
-define('PSS_RID', 123);
 
 /**
  * ExternalModule class for Project Sequestration State module.
  */
 class ExternalModule extends AbstractExternalModule {
 
-    protected $userRights;
+    protected $mask_pid;
+    protected $mask_rid;
+    protected $user_rights;
     protected $settings = array();
-    protected $jsFiles = array();
+    protected $js_files = array();
 
     /**
      * @inheritdoc
@@ -47,7 +44,7 @@ class ExternalModule extends AbstractExternalModule {
             return;
         }
 
-        if ($project_id == PSS_PID) {
+        if ($project_id == $this->getMaskPid()) {
             if (PAGE == 'UserRights/edit_user.php') {
                 global $Proj;
 
@@ -81,10 +78,10 @@ class ExternalModule extends AbstractExternalModule {
     function redcap_every_page_top($project_id) {
         if ($project_id) { 
             if ($this->projectIsSequestered($project_id)) {
-                $this->jsFiles[] = 'js/project.js';
+                $this->js_files[] = 'js/project.js';
                 $this->settings['icon'] = $this->getSystemSetting('icon');
 
-                if (!isset($this->userRights)) {
+                if (!isset($this->user_rights)) {
                     // This is important for access denied pages, where hook
                     // every_page_before_render is not executed, so the left menu
                     // is rendered according to the overriden permissions.
@@ -101,12 +98,12 @@ class ExternalModule extends AbstractExternalModule {
             (strpos(PAGE, 'index.php') !== false && !empty($_GET['action']) && $_GET['action'] == 'myprojects')
         ) {
             // Handling projects tables.
-            $this->jsFiles[] = 'js/projects-list.js';
+            $this->js_files[] = 'js/projects-list.js';
 
             $this->settings += array(
                 'name' => $this->getSystemSetting('name'),
                 'icon' => $this->getSystemSetting('icon'),
-                'targetPid' => PSS_PID,
+                'maskPid' => $this->getMaskPid(),
                 'sequesteredProjects' => array(),
             );
 
@@ -127,13 +124,13 @@ class ExternalModule extends AbstractExternalModule {
             strpos(PAGE, 'ExternalModules/manager/control_center.php') !== false ||
             strpos(PAGE, 'ExternalModules/manager/project.php') !== false
         ) {
-            $this->jsFiles[] = 'js/functions.js';
-            $this->jsFiles[] = 'js/config.js';
+            $this->js_files[] = 'js/user-rights-dialog.js';
+            $this->js_files[] = 'js/config.js';
 
-            $target_rid = PSS_RID;
+            $mask_rid = $this->getMaskRid();
             if ($project_id) {
-                if (!$target_rid = $this->getSeqProjectRoleId($project_id)) {
-                    $target_rid = 'sequestered____' . $project_id;
+                if (!$mask_rid = $this->getSequesteredRoleId($project_id)) {
+                    $mask_rid = 'sequestered____' . $project_id;
                 }
 
                 // Hiding table until all JS manipulation is done.
@@ -143,15 +140,32 @@ class ExternalModule extends AbstractExternalModule {
             $this->settings += array(
                 'modulePrefix' => $this->PREFIX,
                 'currentPid' => $project_id,
-                'targetPid' => PSS_PID,
-                'targetRid' => $target_rid,
+                'maskPid' => $this->getMaskPid(),
+                'maskRid' => $mask_rid,
                 'getRoleIdUrl' => $this->getUrl('plugins/ajax_get_seq_project_rid.php'),
+                'dialogTitle' => 'Configure user rights',
             );
         }
 
         // Applying JS settings.
         $this->setJsSettings();
         $this->setJsFiles();
+    }
+
+    function getMaskPid() {
+        global $auth_meth_global;
+
+        $sql = 'INSERT INTO redcap_projects (project_name, app_title, auth_meth) VALUES ("project_sequestration_state", "Project Sequestration State", "' . $auth_meth_global . '")';
+        return $this->__getMaskProperty('mask_pid', $sql);
+    }
+
+    function getMaskRid() {
+        if (!$mask_pid = $this->getMaskPid()) {
+            return false;
+        }
+
+        $sql = 'INSERT INTO redcap_user_roles (project_id, role_name) VALUES (' . db_escape($mask_pid) . ', "sequestered")';
+        return $this->__getMaskProperty('mask_rid', $sql);
     }
 
     function projectIsSequestered($project_id) {
@@ -171,8 +185,15 @@ class ExternalModule extends AbstractExternalModule {
         return false;
     }
 
-    function getSeqProjectRoleId($project_id) {
-        $sql = 'SELECT role_id FROM redcap_user_roles WHERE project_id = ' . PSS_PID . ' AND role_name = "sequestered____' . db_escape($project_id) . '" ORDER BY role_id DESC LIMIT 1';
+    function projectOverridesDefaults($project_id) {
+        return $this->getProjectSetting('override_defaults', $project_id);
+    }
+
+    function getSequesteredRoleId($project_id) {
+        $mask_pid =  db_escape($this->getMaskPid());
+        $role_name = 'sequestered____' . db_escape($project_id);
+
+        $sql = 'SELECT role_id FROM redcap_user_roles WHERE project_id = ' . $mask_pid . ' AND role_name = "' . $role_name . '" ORDER BY role_id DESC LIMIT 1';
         $q = $this->query($sql);
         if (!db_num_rows($q)) {
             return false;
@@ -180,10 +201,6 @@ class ExternalModule extends AbstractExternalModule {
 
         $row = db_fetch_assoc($q);
         return $row['role_id'];
-    }
-
-    function projectOverridesDefaults($project_id) {
-        return $this->getProjectSetting('override_defaults', $project_id);
     }
 
     protected function updateProjectStatus($project_id) {
@@ -213,12 +230,16 @@ class ExternalModule extends AbstractExternalModule {
     }
 
     protected function updateUserRights($project_id) {
-        if (USERID && !SUPER_USER && !ACCOUNT_MANAGER) {
+        if (USERID && !SUPER_USER && !ACCOUNT_MANAGER && $this->getSequesteredSetting('override_user_rights', $project_id)) {
+            if (!$this->projectOverridesDefaults($project_id)) {
+                $project_id = null;
+            }
+
             global $user_rights;
-            $user_rights = $this->userRights = $this->getUserRightsMask($project_id);
+            $user_rights = $this->user_rights = $this->getUserRightsMask($project_id);
         }
 
-        return $this->userRights;
+        return $this->user_rights;
     }
 
     protected function checkPageAccess() {
@@ -241,8 +262,8 @@ class ExternalModule extends AbstractExternalModule {
         return true;
     }
 
-    protected function getUserRightsMask($project_id) {
-        if (!$this->projectOverridesDefaults($project_id) || !($role_id = $this->getSeqProjectRoleId($project_id))) {
+    protected function getUserRightsMask($project_id = null) {
+        if (!$project_id || !($role_id = $this->getSequesteredRoleId($project_id))) {
             $role_id = PSS_RID;
         }
 
@@ -319,6 +340,24 @@ class ExternalModule extends AbstractExternalModule {
         return $this->getSystemSetting($key);
     }
 
+    protected function __getMaskProperty($key, $sql) {
+        if (!isset($this->{$key})) {
+            $this->{$key} = $this->getSystemSetting($key);
+
+            // TODO: move this to redcap_system_module_enable when this hook
+            // becomes available.
+            if (!$this->{$key}) {
+                if ($this->query($sql)) {
+                    $this->{$key} = db_insert_id();
+                    $this->setSystemSetting($key, $this->{$key});
+                }
+            }
+        }
+
+        return $this->{$key};
+
+    }
+
     protected function hideElement($selector) {
         echo '<style>' . $selector . ' {display: none;}</style>';
     }
@@ -327,7 +366,7 @@ class ExternalModule extends AbstractExternalModule {
      * Sets local JS files.
      */
     protected function setJsFiles() {
-        foreach ($this->jsFiles as $path) {
+        foreach ($this->js_files as $path) {
             echo '<script src="' . $this->getUrl($path) . '"></script>';
         }
     }

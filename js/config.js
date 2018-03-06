@@ -26,14 +26,14 @@ $(document).ready(function() {
 
         $modal.find('[field="override_user_rights"] .external-modules-input-td').append('<div>' + button + dialog + '</div>');
 
-        $('#user-rights-override-btn').click(function() {
-            settings.openAddUserPopup(settings.targetPid, settings.targetRid);
-        });
+        var clickButtonCallback = function() {
+            settings.openUserRightsConfigDialog(settings.maskPid, settings.maskRid);
+        };
 
         var setElementVisibility = function($source, $target) {
             var op = $source.is(':checked') ? 'show' : 'hide';
             $target[op]();
-        }
+        };
 
         var branchingLogic = [
             {
@@ -70,7 +70,27 @@ $(document).ready(function() {
                     return false;
                 }
             });
+
+            var clickButtonCallbackOld = clickButtonCallback;
+
+            clickButtonCallback = function() {
+                if ($.isNumeric(settings.maskRid)) {
+                    clickButtonCallbackOld();
+                }
+                else {
+                    // Checking if role exists before creating a new one.
+                    $.getJSON(projectSequestrationState.getRoleIdUrl, function(data) {
+                        if (data.roleId) {
+                            settings.maskRid = data.roleId;
+                        }
+
+                        clickButtonCallbackOld();
+                    });
+                }
+            }
         }
+
+        $('#user-rights-override-btn').click(clickButtonCallback);
 
         branchingLogic.forEach(function(bl) {
             var $source = $(bl.source);
