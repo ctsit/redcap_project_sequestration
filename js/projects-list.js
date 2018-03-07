@@ -13,7 +13,8 @@ $(document).ready(function() {
     $('#table-proj_table tr').each(function() {
         pid = parseInt(callback($(this)));
 
-        if (pid === settings.targetPid) {
+        if (pid === settings.maskPid) {
+            // Removing mask/fake project from list.
             $(this).remove();
             return;
         }
@@ -22,7 +23,7 @@ $(document).ready(function() {
             return;
         }
 
-        var $icon = $(this).children('td').last().find('.glyphicon');
+        var $icon = $(this).children('td').last().find('.glyphicon, .fa');
 
         // Changing status icon to sequestered.
         $icon[0].className = '';

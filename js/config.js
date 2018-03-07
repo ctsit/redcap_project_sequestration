@@ -2,7 +2,7 @@ $(document).ready(function() {
     var $modal = $('#external-modules-configure-modal');
     var settings = projectSequestrationState;
 
-    if (settings.currentPid) {
+    if (ExternalModules.PID) {
         if (!super_user) {
             // Hiding module configuration from non global admins.
             $('[data-module="' + settings.modulePrefix + '"]').remove();
@@ -21,9 +21,9 @@ $(document).ready(function() {
             return;
         }
 
+        // Placing user permissions button and dialog.
         var button = '<button id="user-rights-override-btn">Configure permissions</button>';
         var dialog = '<div id="user-rights-mask" class="simpleDialog"></div>';
-
         $modal.find('[field="override_user_rights"] .external-modules-input-td').append('<div>' + button + dialog + '</div>');
 
         var clickButtonCallback = function() {
@@ -35,6 +35,7 @@ $(document).ready(function() {
             $target[op]();
         };
 
+        // Defining a branching logic structure.
         var branchingLogic = [
             {
                 source: 'input[name^="override_user_rights"]',
@@ -42,7 +43,8 @@ $(document).ready(function() {
             }
         ];
 
-        if (settings.currentPid) {
+        if (ExternalModules.PID) {
+            // Expanding branching logic for the project config page.
             branchingLogic.push({
                 source: 'input[name="override_defaults"]',
                 target: '[field="override_defaults_wrapper"], [field="inactive"], [field="warning_message"], [field="override_user_rights"]'
@@ -59,22 +61,31 @@ $(document).ready(function() {
             });
 
             var $date = $modal.find('input[name="date"]');
+            var validateDate = function(ob) {
+                return redcap_validate(ob, '', '', 'hard', 'date_' + user_date_format_validation, 1, 1, user_date_format_delimiter);
+            }
 
+            // Setting up date field.
             $date.datepicker({yearRange: '-1:+10', changeMonth: true, changeYear: true, dateFormat: user_date_format_jquery});
+
+            // Validating date field.
             $date.change(function() {
-                redcap_validate(this, '', '', 'hard', 'date_' + user_date_format_validation, 1, 1, user_date_format_delimiter);
+                validateDate(this);
             });
 
             $modal.find('.save').click(function() {
-                if (!redcap_validate($date[0], '', '', 'hard', 'date_' + user_date_format_validation, 1, 1, user_date_format_delimiter)) {
+                if (!validateDate($date[0])) {
                     return false;
                 }
             });
 
             var clickButtonCallbackOld = clickButtonCallback;
 
+            // Overriding button click callback for project config page.
             clickButtonCallback = function() {
                 if ($.isNumeric(settings.maskRid)) {
+                    // If there is already a mask role for this project, go
+                    // go ahead with normal procedure.
                     clickButtonCallbackOld();
                 }
                 else {
@@ -92,6 +103,7 @@ $(document).ready(function() {
 
         $('#user-rights-override-btn').click(clickButtonCallback);
 
+        // Applying branching logic.
         branchingLogic.forEach(function(bl) {
             var $source = $(bl.source);
             var $target = $(bl.target);
