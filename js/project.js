@@ -14,8 +14,19 @@ $(document).ready(function() {
         $('#subheader').after(settings.warningMsg);
     }
 
-    var $table = $('.chklisthdr.delete-target');
-    if ($table.length === 0) {
+    // Disabling project status change buttons.
+    function disableStatusButton($button) {
+        $button.prop('disabled', 'disabled');
+        $button.css('opacity', '0.5').css('background', 'none');
+        $button.removeAttr('onclick');
+    }
+
+    if ($('.chklisthdr.delete-target').length === 0) {
+        var $button = $('button[onclick="btnMoveToProd()"]');
+        if ($button.length !== 0) {
+            disableStatusButton($button);
+        }
+
         return;
     }
 
@@ -31,8 +42,6 @@ $(document).ready(function() {
     }
 
     $.each(buttons, function(i, $button) {
-        $button = $button.find('button').prop('disabled', 'disabled');
-        $button.css('opacity', '0.5').css('background', 'none');
-        $button.removeAttr('onclick');
+        disableStatusButton($button.find('button'));
     });
 });
