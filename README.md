@@ -14,7 +14,7 @@ Access PSS configuration on Control Center in order to set the following fields:
 ![Global configuration modal page](img/global_config.png)
 
 * __State name, State icon:__ These fields define how the sequestered state will present itself to the users (label and icon). A [link to a list of icons from Bootstrap](https://getbootstrap.com/docs/3.3/components/) is provided.
-* __Disable project functionalities:__ If checked, once a project enters in sequestered state, it behaves like a Inactive one, so all basic functionalities - like public surveys - will be disabled.
+* __Disable project functionalities:__ If checked, the sequestered projects behave like inactive ones, so all basic functionalities - like public surveys - will be disabled.
 * __Warning message:__ The message displayed when a sequestered project is accessed, which can be useful when users are required take some action. Leave it blank to do not display any message.
 * __Override user rights:__ If checked, a button shows up that leads to a user rights configuration screen, very similar to REDCap's user role edit screen (see image below).
 
