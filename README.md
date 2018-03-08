@@ -21,7 +21,7 @@ Access PSS configuration on Control Center in order to set the following fields:
 ![User rights configuration](img/user_rights_config.png)
 
 
-## Sequestrating a project
+## Sequestering a project
 To sequestrate a project, go to your project, open SPP configuration modal, and then you will find 2 ways to sequester the project: _Simple On/Off switch_ and _Scheduled_, as it's shown on images below.
 
 ![Sequestration schedule](img/sequestration_switch.png)
