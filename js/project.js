@@ -14,30 +14,25 @@ $(document).ready(function() {
         $('#subheader').after(settings.warningMsg);
     }
 
-    if (typeof settings.oldStatus === 'undefined') {
-        return;
-    }
-
     var $table = $('.chklisthdr.delete-target');
     if ($table.length === 0) {
         return;
     }
 
-    // Removing Project Management button based on the former status.
-    switch (settings.oldStatus) {
-        case '1':
-            // Removing "move to production" button.
-            var $target = $('button[onclick="btnMoveToProd()"]').parent().parent();
-            break;
-        case '3':
-            // Removing archive button.
-            var $target = $('#row_archive');
-            break;
-        default:
-            // Removing "move to development" button.
-            var $target = $('button[onclick="MoveToDev(0,0)"]').parent().parent();
-            break;
+    var buttons = {
+        0: $('button[onclick="MoveToDev(0,0)"]').parent().parent(),
+        1: $('button[onclick="btnMoveToProd()"]').parent().parent(),
+        3: $('#row_archive')
+    };
+
+    if (typeof settings.oldStatus !== 'undefined') {
+        buttons[settings.oldStatus].remove();
+        delete buttons[settings.OldStatus];
     }
 
-    $target.remove();
+    $.each(buttons, function(i, $button) {
+        $button = $button.find('button').prop('disabled', 'disabled');
+        $button.css('opacity', '0.5').css('background', 'none');
+        $button.removeAttr('onclick');
+    });
 });
