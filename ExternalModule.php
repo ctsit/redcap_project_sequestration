@@ -462,24 +462,4 @@ class ExternalModule extends AbstractExternalModule {
             echo '<script>projectSequestrationState = ' . json_encode($this->settings) . ';</script>';
         }
     }
-
-    /**
-     * Helper function that contains the structure for getMask[PR]id functions.
-     */
-    protected function __getMaskProperty($key, $sql) {
-        if (!isset($this->{$key})) {
-            $this->{$key} = $this->getSystemSetting($key);
-
-            // TODO: move this to redcap_system_module_enable when this hook
-            // becomes available.
-            if (!$this->{$key}) {
-                if ($this->query($sql)) {
-                    $this->{$key} = db_insert_id();
-                    $this->setSystemSetting($key, $this->{$key});
-                }
-            }
-        }
-
-        return $this->{$key};
-    }
 }
