@@ -281,7 +281,9 @@ class ExternalModule extends AbstractExternalModule {
     protected function updateProjectStatus($project_id) {
         global $status, $lang;
 
-        if ($this->getSequesteredSetting('inactive', $project_id)) {
+        if ($this->getSequesteredSetting('inactive', $project_id) && $status != 2) {
+            $this->settings['oldStatus'] = $status;
+
             // Setting project status as inactive.
             $status = 2;
         }
@@ -315,6 +317,9 @@ class ExternalModule extends AbstractExternalModule {
 
             global $user_rights;
             $user_rights = $this->userRights = $this->getUserRightsMask($project_id);
+        }
+        else {
+            $this->userRights = false;
         }
 
         return $this->userRights;
@@ -421,7 +426,7 @@ class ExternalModule extends AbstractExternalModule {
 
         // Placing warning message at the top of page.
         $msg = RCView::div(array(), RCView::img(array('src' => APP_PATH_IMAGES . 'warning.png')) . ' ' . RCView::b('NOTICE')) . $msg;
-        $this->settings['warningMsg'] = RCView::div(array('class' => 'yellow'), $msg);
+        $this->settings['warningMsg'] = RCView::div(array('class' => 'yellow', 'style' => 'margin-bottom:25px;'), $msg);
     }
 
     /**
