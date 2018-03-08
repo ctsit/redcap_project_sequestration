@@ -40,12 +40,12 @@ The configuration example from previous sections results in the following view f
 
 ### Project lists
 
-The project status name & icon on is also changed on project lists, as in the example below.
+The project status name & icon are also changed on project lists, as in the example below.
 
 ![Projects list](img/projects_list.png)
 
 ## Overriding global configuration per project
 
-It is possible to override the global configuration by checking __Override default configuration__ checkbox and filling the fields that show up, which are exactly the same found on global configuration.
+It is possible to override the global configuration by checking __Override default configuration__ checkbox and filling out the fields that show up, which are exactly the same ones found on global configuration.
 
 ![Project configuration modal page](img/project_config.png)
