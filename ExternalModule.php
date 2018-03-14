@@ -96,8 +96,8 @@ class ExternalModule extends AbstractExternalModule {
             }
         }
         elseif (
-            strpos(PAGE, 'ControlCenter/view_projects.php') !== false ||
-            (strpos(PAGE, 'index.php') !== false && !empty($_GET['action']) && $_GET['action'] == 'myprojects')
+            PAGE == 'ControlCenter/view_projects.php' ||
+            (strpos(PAGE, substr(APP_PATH_WEBROOT_PARENT, 1) . 'index.php') === 0 && !empty($_GET['action']) && $_GET['action'] == 'myprojects')
         ) {
             // Handling projects tables.
             $this->jsFiles[] = 'js/projects-list.js';
