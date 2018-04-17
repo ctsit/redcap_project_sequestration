@@ -157,7 +157,7 @@ class ExternalModule extends AbstractExternalModule {
 
         global $auth_meth_global;
         $sql = 'INSERT INTO redcap_projects (project_name, app_title, auth_meth)
-                VALUES ("project_sequestration_state", "Project Sequestration State", "' . $auth_meth_global . '")';
+                VALUES ("project_sequestration_state", "Project Sequestration State", "' . db_real_escape_string($auth_meth_global) . '")';
 
         if (!$this->query($sql)) {
             return false;
@@ -189,7 +189,7 @@ class ExternalModule extends AbstractExternalModule {
             $role_name .= '____' . db_escape($project_id);
         }
 
-        $sql = 'SELECT role_id FROM redcap_user_roles WHERE project_id = ' . $mask_pid . ' AND role_name = "' . $role_name . '" ORDER BY role_id DESC LIMIT 1';
+        $sql = 'SELECT role_id FROM redcap_user_roles WHERE project_id = "' . intval($mask_pid) . '" AND role_name = "' . db_real_escape_string($role_name) . '" ORDER BY role_id DESC LIMIT 1';
         $q = $this->query($sql);
         if (db_num_rows($q)) {
             $row = db_fetch_assoc($q);
@@ -204,7 +204,7 @@ class ExternalModule extends AbstractExternalModule {
             return false;
         }
 
-        $sql = 'INSERT INTO redcap_user_roles (project_id, role_name) VALUES (' . $mask_pid . ', "sequestered")';
+        $sql = 'INSERT INTO redcap_user_roles (project_id, role_name) VALUES ("' . intval($mask_pid) . '", "sequestered")';
         if (!$this->query($sql)) {
             return false;
         }
@@ -239,21 +239,21 @@ class ExternalModule extends AbstractExternalModule {
     function getSequesteredProjectsIds() {
         $ids = array();
 
-        $q = $this->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = "' . $this->PREFIX . '"');
+        $q = $this->query('SELECT external_module_id FROM redcap_external_modules WHERE directory_prefix = "' . db_real_escape_string($this->PREFIX) . '"');
         $module_id = db_fetch_assoc($q);
-        $module_id = $module_id['external_module_id'];
+        $module_id = intval($module_id['external_module_id']);
 
         // This query is an optimization for the case of a huge amount of projects.
         $sql = 'SELECT m.project_id
                 FROM (
                     SELECT project_id, value as mode
                     FROM redcap_external_module_settings
-                    WHERE external_module_id = ' . $module_id . ' AND `key` = "mode"
+                    WHERE external_module_id = "' . $module_id . '" AND `key` = "mode"
                 ) m
                 LEFT JOIN redcap_external_module_settings s ON
-                    s.external_module_id = ' . $module_id . ' AND s.project_id = m.project_id AND s.key = "sequestered"
+                    s.external_module_id = "' . $module_id . '" AND s.project_id = m.project_id AND s.key = "sequestered"
                 LEFT JOIN redcap_external_module_settings d ON
-                    d.external_module_id = ' . $module_id . ' AND d.project_id = m.project_id AND d.key = "date"
+                    d.external_module_id = "' . $module_id . '" AND d.project_id = m.project_id AND d.key = "date"
                 WHERE (m.mode = "switch" AND s.value = "true") OR (m.mode = "scheduled" AND UNIX_TIMESTAMP(STR_TO_DATE(d.value, "%m/%d/%Y")) < ' . time() . ')';
 
         $q = $this->query($sql);
@@ -356,7 +356,7 @@ class ExternalModule extends AbstractExternalModule {
             $role_id = $this->getMaskRid();
         }
 
-        $sql = 'SELECT * FROM redcap_user_roles WHERE role_id = ' . $role_id;
+        $sql = 'SELECT * FROM redcap_user_roles WHERE role_id = "' . intval($role_id) . '"';
         $q = $this->query($sql);
 
         $user_rights = array('username' => USERID);
