@@ -40,7 +40,7 @@ class ExternalModule extends AbstractExternalModule {
                 // global admins is able to save configuration or disable the
                 // module.
                 echo 'Access denied';
-                exit;
+                $this->exitAfterHook();
             }
 
             return;
